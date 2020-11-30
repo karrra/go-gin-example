@@ -1,11 +1,5 @@
 package models
 
-import (
-	"time"
-
-	"github.com/jinzhu/gorm"
-)
-
 type Article struct {
 	Model
 
@@ -32,13 +26,13 @@ func ExistArticleByID(id int) bool {
 }
 
 func GetArticleTotal(maps interface{}) (count int) {
-	db.Model(&Article{}).Where(maps).Count(&count)
+	db.Model(&Article{}).Where("deleted_on is null").Where(maps).Count(&count)
 
 	return
 }
 
 func GetArticles(pageNum int, pageSize int, maps interface{}) (articles []Article) {
-	db.Preload("Tag").Where(maps).Offset(pageNum).Limit(pageSize).Find(&articles)
+	db.Preload("Tag").Where("deleted_on is null").Where(maps).Offset(pageNum).Limit(pageSize).Find(&articles)
 
 	return
 }
@@ -73,16 +67,4 @@ func DeleteArticle(id int) bool {
 	db.Where("id = ?", id).Delete(Article{})
 
 	return true
-}
-
-func (article *Article) BeforeCreate(scope *gorm.Scope) error {
-	scope.SetColumn("CreatedOn", time.Now().Unix())
-
-	return nil
-}
-
-func (article *Article) BeforeUpdate(scope *gorm.Scope) error {
-	scope.SetColumn("ModifiedOn", time.Now().Unix())
-
-	return nil
 }

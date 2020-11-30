@@ -1,11 +1,5 @@
 package models
 
-import (
-	"time"
-
-	"github.com/jinzhu/gorm"
-)
-
 type Tag struct {
 	Model
 
@@ -16,13 +10,13 @@ type Tag struct {
 }
 
 func GetTags(pageNum int, pageSize int, maps interface{}) (tags []Tag) {
-	db.Where(maps).Offset(pageNum).Limit(pageSize).Find(&tags)
+	db.Where("deleted_on is null").Where(maps).Offset(pageNum).Limit(pageSize).Find(&tags)
 
 	return
 }
 
 func GetTagTotal(maps interface{}) (count int) {
-	db.Model(&Tag{}).Where(maps).Count(&count)
+	db.Model(&Tag{}).Where("deleted_on is null").Where(maps).Count(&count)
 
 	return
 }
@@ -69,16 +63,4 @@ func DeleteTag(id int) bool {
 	db.Where("id = ?", id).Delete(&Tag{})
 
 	return true
-}
-
-func (tag *Tag) BeforeCreate(scope *gorm.Scope) error {
-	scope.SetColumn("CreatedOn", time.Now().Unix())
-
-	return nil
-}
-
-func (tag *Tag) BeforeUpdate(scope *gorm.Scope) error {
-	scope.SetColumn("ModifiedOn", time.Now().Unix())
-
-	return nil
 }
